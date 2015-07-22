@@ -1,0 +1,6 @@
+# smartart-code
+Technology has long been implemented in museums as a way to add context to the works of art being exhibited. Currently, audio tours are the most common platform for a self-guided experience. In the 21st century, this technology seems static and outdated. In order to connect with visitors, it is important to create new platforms that stimulate the museum experience.
+
+SmartArt is a project to assist visitors while viewing art shows. The app gives the visitor tools to become his or her own museum curator and enhance his or her experience in a more personalized and engaging way. In particular, SmartArt is motivated to cater to smaller organizations such as student art shows and private galleries, who may have less resources, and be more technologically savvy.
+
+SmartArt provides three main benefits over traditional audio tours. First, it exists over the web, providing universal access to potential users. Second, it has an intuitive user interface where art curators can easily upload the information they would like to share. Last, SmartArt simplifies the task of displaying relevant information to the user and adds novelty to the service by implementing computer vision technologies. The scope of this project was built specially for University of Michigan Computer Vision, Winter 2015.
