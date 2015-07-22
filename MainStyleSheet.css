@@ -1,0 +1,166 @@
+body
+{
+	font-family: 'ProximaNova', serif;
+	margin:0px;
+	background-color: white;
+	
+}
+
+/*css for blue bar at top*/
+.logo
+{
+	width:100%;
+	min-width:936;
+	height:40px;
+	background-color:#518dca;
+	border-bottom: 0px;
+	box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
+	position:absolute;
+	z-index:3;
+}
+
+/*css for each div that contains heading*/
+.header
+{
+	height:32px;
+	width:100%;
+	background-color:#4f657b;
+	text-align:center;
+	position:relative;
+	border-bottom:3px solid #1a2733;
+	border-top:3px solid #1a2733;
+	padding-top:12px;
+	color:9cb3ca;
+	font-size:18px;
+	font-weight: bold;
+	box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+/* css for each page under template heading*/
+.ButtonInside
+{
+	width:220px;
+	height:34px;
+	padding-top:11px;
+	padding-left:21px;
+	position:relative;
+	border-radius:5;
+	box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.5);
+	display:none;
+	color:white;
+	font-weight:bold;
+	font-size:18px;
+	letter-spacing:.3px;
+}
+	
+/*highlighted page on the toolbar*/
+.Current{
+	border:1px solid #6399cf;
+	background-color:#518dca;
+}
+/*pages that are not highlighted on the toolbar*/
+.Other{
+	background-color:#4f657b;
+	border:1px solid #617588;
+}
+
+/*css when delete is hovered on*/
+.red{
+	background-color:#d86a65;
+	border:1px solid #dc7975;
+}
+
+/*css for space holder for each page in template heading*/
+.ButtonOutside
+{
+	width:243px;
+	height:47px;
+	border:0px;
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
+	margin-bottom:14px;
+	display:none;
+}
+
+/*style for div that adds pages*/
+.pageADD
+{
+	width:216px;
+	height:30px;
+	padding-top:11px;
+	padding-left:21px;
+	border:3px solid #4f657b;
+	position:relative;
+	border-radius:5;
+	margin-left:auto;
+	margin-right:auto;
+	margin-bottom:22px;
+	display:block;
+}
+
+/*css for text in each page inside template heading*/
+.textBOXbutton
+{
+	background-color:transparent;
+	border:0px;
+	width:150px;
+	position:absolute;
+	color:white;
+	font-size:18px;
+	font-weight: bold;
+	outline: 0;
+}
+
+.deleteICON
+{
+	position:absolute;
+	float:right;
+	top:15px;
+	right:15px;
+	display:none;
+}
+
+.editICON
+{
+	position:absolute;
+	float:right;
+	top:14px;
+	right:35px;
+	display:none;
+}
+
+
+.deleteTriangle
+{
+	position:absolute;
+	top:0px;
+	right:0px;
+	display:none;
+	z-index:4;
+}
+
+.borderBlue
+{
+	border-color: #8fc7ff;
+}
+
+.borderRed
+{
+	border-color: #ef7a74;
+}
+
+
+/*Text color for 'add new page' Placeholder*/
+::-webkit-input-placeholder { /* WebKit browsers */
+    color:    #4f657b;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    color:    #4f657b;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+    color:    #4f657b;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+    color:    #4f657b;
+}

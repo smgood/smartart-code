@@ -1,0 +1,1237 @@
+<html>
+<head>
+
+<!-- jquery plugins -->
+<script src="js/jquery-1.10.2.js"></script>
+<script src="js/jquery.easing.1.3.js"></script>
+<script src="js/jquery.ui.effect.js"></script>
+<script src="js/jquery.ui.effect-slide.js"></script>
+<script src="js/jquery.ui.core.js"></script>
+<script src="js/jquery.ui.widget.js"></script>
+<script src="js/jquery.ui.mouse.js"></script>
+<script src="js/jquery.ui.draggable.js"></script>
+<script src="js/jquery.ui.droppable.js"></script>
+<script src="js/jquery.ui.effect-drop.js"></script>
+<script src="js/jquery.ui.resizable.js"></script>
+<script type="text/javascript" src="js/ccv.js"></script>
+<script type="text/javascript" src="js/face.js"></script>
+<script src="js/adapter.js"></script>
+
+<script src="js/tracking-min.js"></script>
+<script src="js/numeric-1.2.6.js"></script>
+<!-- CSS -->
+
+<link rel="stylesheet" type="text/css" href="MainStyleSheet.css">
+
+<!-- Favicon Image -->
+<link rel="shortcut icon" href="Images/favicon.ico" type="image/x-icon">
+
+<!-- Font -->
+<style>
+		@font-face {
+			font-family: 'ProximaNova';
+			src: url('Assets/Font/ProximaNova-Reg.otf') format('truetype');
+		}
+		
+		@font-face {
+			font-family: 'ProximaNova';
+			font-weight: bold;
+			src: url('Assets/Font/ProximaNova-Sbold.otf') format('truetype');
+		}
+</style>
+
+
+<script type="text/javascript">
+
+var current_art = null;
+var recognition_page; 
+
+$( document ).ready(function()
+	{
+	var upload_container = document.getElementById("upload_container");
+						attachVideo();
+	});
+	
+//var uploadedFiles = [];
+
+//SHOW IMAGE AND IAMGE DETAILS
+function handleFiles(files) { 
+	var already_chosen = 0;
+	 
+    for (var i = 0; i < files.length; i++) {  
+        var file = files[i]; 
+
+		if (!file.type.match("image/*")) {
+			alert("INCORRECT FILE TYPE!");
+			}
+		else
+			{
+			/*
+			var copy = 0;
+			for (var j = 0; j < uploadedCount; j++)
+				{
+				if (file.name == uploadedFiles[j].name)
+					{
+					alert("FILE ALREADY CHOSEN!");
+					++already_chosen;
+					copy = 1;
+					}
+				}
+			*/
+			//if (copy == 0)
+				//{
+				create_art(file, i - already_chosen);
+				//uploadedFiles[uploadedCount] = file;
+				//}
+			}
+	}
+}
+
+function create_art(file, i)
+			{		
+				var container = document.createElement("div");
+				container.className = "container";
+				container.style.display = "none";
+				currentGallery.appendChild(container);
+				
+				var flipping = document.createElement("div");
+				flipping.className = "flipping_div";
+				container.appendChild(flipping);
+				
+				var overflow = document.createElement("div");
+				overflow.classList.add("overflow_image");
+				flipping.appendChild(overflow);
+				
+				var img = document.createElement("img");  
+				img.classList.add("image");			
+				img.file = file;  
+				overflow.appendChild(img);
+				
+				var back_info = document.createElement('div');
+				back_info.classList.add("info");			
+				flipping.appendChild(back_info);
+				
+				var flip = document.createElement("div");
+				flip.classList.add("flip");
+				container.appendChild(flip);
+				
+				var remove = document.createElement("div");
+				remove.classList.add("remove");
+				container.appendChild(remove);
+				
+				var reader = new FileReader();  
+				reader.onload = (function(aImg) {
+					return function(e) { 
+						$(aImg).load(function() {	
+							ratio = aImg.height / aImg.width;
+						
+							if (ratio < 1)
+								{
+								aImg.style.height = "144px";
+								aImg.style.width = "auto";								
+								aImg.style.left = (-144/ratio + 144)/2 + "px";
+								}
+							else
+								{
+								aImg.style.width = "144px";
+								aImg.style.height = "auto";
+								aImg.style.top = (-144*ratio + 144)/2 + "px";
+								}
+						}).attr("src", e.target.result);
+					};
+				})(img);
+				reader.readAsDataURL(file);
+				
+				var artworks = currentGallery.childNodes;
+				container.style.top = 160 * Math.floor((artworks.length-1) / 2) + "px";							
+				if (artworks.length % 2 ==0)
+					{
+					$(upload_container).animate({ left:'+=-160', top:'+=160px' }, 750, function(){
+						$(container).fadeIn(500);
+						container.style.left = "160px";
+						container.style.display = "block";
+						});				
+					}
+				else	
+					{
+					$(upload_container).animate({ left:'+=160' }, 750, function(){
+						$(container).fadeIn(500);
+						container.style.left = "0px";
+						container.style.display = "block";
+						});
+					}
+					
+				$( container ).hover(
+					function() {
+						$(flip).fadeIn();
+						$(remove).fadeIn();
+						img.style.webkitFilter = "grayscale(0)";
+						document.body.style.cursor = "pointer";
+
+					}, function() {
+						$(flip).stop(true, false).fadeOut();
+						$(remove).stop(true, false).fadeOut();
+						img.style.webkitFilter = "grayscale(1)";
+						document.body.style.cursor = "default";
+
+				});
+				
+				$(flip).click(function(){
+					if ( $( flipping ).hasClass( "flipped" ) )
+						{
+						$( flipping ).removeClass( "flipped" );
+						}
+					else
+						{
+						$( ".flipping_div" ).removeClass( "flipped" );
+						$(flipping).addClass("flipped");	
+						}
+				});
+				
+				$(remove).click(function(){
+					var artworks = currentGallery.childNodes;
+					var move = 0;
+					
+					$(container).children().fadeOut("500"); 
+					
+					setTimeout(function()
+						{
+						for(i=0; i<artworks.length; i++)
+							{
+   							if (container == artworks[i])
+								{
+								move = i;
+								}
+							}
+							
+						for(j=move+1; j<artworks.length; j++)
+							{
+   							if (j%2 == 1)
+								$(artworks[j]).animate({ left:'+=-160' }, 750).css({"z-index": '1'});
+							else
+								$(artworks[j]).animate({ left:'+=160', top:'+=-160' }, 750).css({"z-index": '2'});
+							}
+						
+						if (artworks.length%2 == 1)
+							$(upload_container).animate({ left:'+=-160' }, 750).css({"z-index": '1'});
+						else
+							$(upload_container).animate({ left:'+=160', top:'+=-160' }, 750).css({"z-index": '2'});
+						
+							
+						setTimeout(function()
+							{
+							$(container).remove();
+							}, 500);
+						}, 500);
+						
+						if (art_info == current_art)
+							{
+							$(art_info).fadeOut("fast", function()
+								{
+								art_info.remove();
+								current_art = null;
+								});
+							}
+						else
+							{
+							art_info.remove();	
+							}
+				});
+				
+				var art_info = document.createElement("div");
+				art_info.classList.add("art_info");
+				$("#artGuide").append(art_info);
+				
+				var frame = document.createElement("div");
+				frame.classList.add("frame");
+				$(art_info).append(frame);
+
+				var portrait = document.createElement("img");
+				portrait.file = file;
+				portrait.classList.add("portrait");  
+				$(frame).append(portrait);
+				
+				var reader2 = new FileReader();  
+				reader2.onload = (function(aImg) {
+					return function(e) { 
+						$(aImg).load(function() {	
+							ratio = aImg.height / aImg.width;					
+							if (ratio < 1)
+								{
+								aImg.style.height = "275px";
+								aImg.style.width = "auto";								
+								aImg.style.left = (-275/ratio + 275)/2 + "px";
+								}
+							else
+								{
+								aImg.style.width = "275px";
+								aImg.style.height = "auto";
+								aImg.style.top = (-275*ratio + 275)/2 + "px";
+								}
+						}).attr("src", e.target.result);
+					};
+				})(portrait);
+				reader2.readAsDataURL(file);
+				
+				var input_container = document.createElement('div');
+				input_container.classList.add("input_container");
+				$(art_info).append(input_container);
+
+
+				var	art_artist = document.createElement('input');
+					art_artist.classList.add("art_artist");
+					art_artist.placeholder = "Artist";
+					$(input_container).append(art_artist);
+					
+				var	art_birth = document.createElement('input');
+					art_birth.classList.add("art_year");
+					art_birth.placeholder = "b.";
+					$(input_container).append(art_birth);
+				var	art_title = document.createElement('input');
+					art_title.classList.add("art_title");
+					art_title.placeholder = "Title";
+					$(input_container).append(art_title);
+				var	art_year = document.createElement('input');
+					art_year.classList.add("art_year");
+					art_year.placeholder = "year";
+					$(input_container).append(art_year);
+				var	art_medium = document.createElement('input');
+					art_medium.classList.add("art_medium");
+					art_medium.placeholder = "Medium";
+					$(input_container).append(art_medium);
+
+				var TextArea = document.createElement("TEXTAREA");
+				TextArea.classList.add("TextArea");
+				TextArea.placeholder = "Write a summary...";
+				$(art_info).append(TextArea);
+				
+				$(container).click(function()
+					{
+					if (art_info != current_art)
+						{
+						if (current_art != null)
+							{
+							$(current_art).fadeOut(function()
+								{
+								$(art_info).fadeIn()	
+								});
+							}
+						else
+							{
+							$(art_info).fadeIn()
+							}
+						current_art = art_info;
+						attachVideo();
+						}
+					});
+			}  
+
+// hides choose file for upload button
+$( document ).ready(function(){
+    $(".upload_button").mousemove(function(e) {
+        var offL, offR, inpStart
+        offL = $(this).offset().left;
+        offT = $(this).offset().top;
+        $(this).find("input").css({
+            left:e.pageX-offL - 70,
+            top:e.pageY-offT - 70
+        })
+    }); 
+	
+	
+	$( ".upload_button" ).hover(
+  		function() {
+			$(this).find(".upload_image").attr("src", "Images/upload-hover.png")
+  		}, function() {
+			$(this).find(".upload_image").attr("src", "Images/upload.png")
+ 		}
+	);
+	
+	recognition_page = document.getElementById("recognition_page");
+	$("#recognition_button").click(
+		function() {
+			if (current_art != recognition_page)
+				{	
+				if (current_art != null)
+					{
+					$(current_art).fadeOut(function(){
+						$(recognition_page).fadeIn();
+						});
+					}
+				else
+					{
+					$(recognition_page).fadeIn();				
+					}
+				current_art = recognition_page;
+				attachVideo();
+				}
+		});
+	
+});
+
+
+
+</script>
+
+<style>
+
+.container
+	{
+	display:block;
+	position:absolute;
+	width:160px;
+	height:160px;
+	padding:0px;
+	
+	-webkit-perspective: 500px;
+    	-moz-perspective: 500px;
+    		-o-perspective: 500px;
+    			perspective: 500px;	
+	}
+
+.flipping_div
+	{
+	width:100%;
+	height:100%;
+	
+	-webkit-transition: -webkit-transform .5s;
+    	-moz-transition: -moz-transform .5s;
+     		-o-transition: -o-transform .5s;
+      			transition: transform .5s;
+      -webkit-transform-style: preserve-3d;
+         -moz-transform-style: preserve-3d;
+           -o-transform-style: preserve-3d;
+              transform-style: preserve-3d;	
+	}
+
+.overflow_image
+	{
+	z-index:1;
+	display:block;
+    width: 144px;
+    height: 144px;
+	box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+	margin-left:8px;
+	margin-top:8px;
+	position:absolute;
+	overflow:hidden;
+	border-radius:4px;
+	}
+
+.overflow_image:active
+	{
+	box-shadow: 0px 0px 0px #888888;
+	margin-left:11px;
+	margin-top:11px;
+	}
+
+.image
+	{
+	display:block;
+	position:absolute;
+	z-index:1;
+	-webkit-filter: grayscale(1);
+	}	
+
+.info
+	{
+	z-index:2;
+	opacity: 0.9;
+	background-color:#d3d3d3;
+	display:block;
+    width: 144px;
+    height: 144px;
+	box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+	margin-left:8px;
+	margin-top:8px;
+	overflow:hidden;
+	position: absolute;
+	border-radius:4px;
+
+	-webkit-transform: rotateY( 180deg );
+         -moz-transform: rotateY( 180deg );
+           -o-transform: rotateY( 180deg );
+              transform: rotateY( 180deg );
+	
+	-webkit-backface-visibility: hidden;
+    	-moz-backface-visibility: hidden;
+           -o-backface-visibility: hidden;
+              backface-visibility: hidden; 
+	}
+	
+.flip
+	{
+	background-color:green;
+	border-radius:50%;
+	height:20px;
+	width:20px;
+	top:0px;
+	right:30px;
+	position:absolute;
+	display:none;
+	}
+
+.remove
+	{
+	background-color:red;
+	border-radius:50%;
+	height:20px;
+	width:20px;
+	top:0px;
+	right:0px;
+	position:absolute;
+	display:none;
+	}
+
+.flipped 
+	{
+      -webkit-transform: rotateY( 180deg );
+         -moz-transform: rotateY( 180deg );
+           -o-transform: rotateY( 180deg );
+              transform: rotateY( 180deg );
+	}
+	
+#upload_container
+	{
+	margin-top:8px;
+	margin-left:8px;
+	}
+	
+.upload_button 
+	{
+	display:block;
+    width: 144px;
+    height: 144px;
+	box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+	position:relative;
+	margin-top:8px;
+	margin-left:8px;
+	border-radius:4px;
+	overflow:hidden;
+	}
+
+.upload_button:active
+	{
+	box-shadow: 0px 0px 0px #888888;
+	margin-left:11px;
+	margin-top:11px;
+	}
+
+.upload_input
+	{
+    width: 144px;
+    height: 144px;
+	cursor: pointer;
+	opacity: 0;
+	filter: alpha(opacity=0);
+	z-index:2; 
+	position:absolute;
+	}
+	
+.upload_image
+	{
+	width: 144px;
+	height: 144px;
+	position:absolute;
+	}
+	
+.gallery
+	{
+	position:absolute;
+	display:none;
+	margin-top:8px;
+	margin-left:8px;
+	width:320px;
+	}
+	
+.art_info
+	{
+	display:none;
+	height:calc(100% - 50px);
+	width:550px;
+	padding: 50px 25px 0px 25px; 
+	position:relative;
+	margin-left:auto;
+	margin-right:auto;
+	-webkit-perspective: 500px; 
+	perspective: 500px;
+	perspective-origin: 25% 50%;
+	-webkit-perspective-origin: 25% 50%; /* Chrome, Safari, Opera */
+	}
+
+.portrait
+	{
+	display:inline-block;
+	position:relative;	
+	}
+
+.frame
+	{
+	display:inline-block;
+	position:relative;
+	float:left;
+    width: 275px;
+    height: 275px;
+	overflow:hidden;
+	}
+
+.input_container
+	{
+	display:inline-block;
+	position:relative;
+	float:right;
+	width:250px;
+	height:275px;	
+	}
+	
+.TextArea
+	{
+	margin-top:25px;
+	width:100%;
+	height:150px;	
+	display:inline-block;
+	font-size:16px;
+	resize:vertical;
+	max-height:250px;
+	}
+
+.art_artist
+	{
+	float:left;
+	position:relative;
+	display:inline-block;
+	font-size:16px;
+	width:70%;
+	font-weight:bold;
+	margin-bottom:10px;
+	}
+	
+.art_year
+	{
+	float:right;
+	position:relative;
+	display:inline-block;
+	font-size:16px;
+	width:25%;
+	margin-bottom:10px;
+	}
+
+.art_title
+	{
+	float:left;
+	position:relative;
+	display:inline-block;
+	font-size:16px;
+	width:70%;	
+	font-weight: bold;
+	font-style: italic;
+	margin-bottom:10px;
+	}
+	
+.art_medium
+	{
+	float:left;
+	position:relative;
+	display:inline-block;
+	font-size:14px;
+	width:50%;	
+	margin-bottom:10px;
+	}
+	
+#recognition_button
+	{
+	position:relative;
+	float:right;
+	width: auto; 
+	height: 30px;
+	top:0px; 
+	right:30px; 
+	border-radius:5px;
+	padding:5px 15px 5px 15px;
+	opacity:1;	
+	}
+	
+#recognition_button:hover
+	{
+	cursor:pointer;
+	background-color:black;
+	opacity:0.5;
+	}
+	
+</style>
+
+
+
+
+
+<script type="text/javascript">
+// Global Variables
+var pagecount = 0;	
+var currentBUTTON = 0;
+var currentGallery;
+
+// create "masterpieces" page and elements on page load
+$( document ).ready(function()
+{
+newBOX("load");
+});
+
+// Function that is called when a new page is created
+// Time specifies if the function is performed on page load or by the user
+function newBOX(time) 
+{
+	++pagecount;
+// Javascript for buttons in template header
+	var outside = document.createElement('div');
+	outside.className="ButtonOutside";
+	document.getElementById('Wcontainer').appendChild(outside);
+		
+	var inside = document.createElement('div');
+	outside.appendChild(inside);
+	if (pagecount==1)
+		inside.className="Current ButtonInside";
+	else
+		inside.className="Other ButtonInside";
+	
+	var pageNAME = document.createElement('input')	
+	pageNAME.className="textBOXbutton";
+	$(pageNAME).attr('maxlength', '20');  
+	var pageTitle;
+	if (time == "load")
+		{
+		pageTitle = "Masterpieces"
+		pageNAME.value = "Masterpieces";
+		}
+	else
+		{
+		pageTitle = document.getElementById('pageTEXT').value; 	
+		if(pageTitle != "")
+			pageNAME.value = pageTitle; 
+		else
+		pageNAME.value = "UNTITLED";
+		}
+	document.getElementById('pageTEXT').value = "";
+	inside.appendChild(pageNAME);
+	pageNAME.disabled = true;
+	
+//Javascript for new artworks area 
+	var gallery = document.createElement('div');
+	gallery.className="gallery";
+	
+	if (time == "load")
+		{
+		currentGallery = gallery;
+		}
+		
+	$(gallery).prependTo("#galleryParent");
+	if (pagecount==1){
+		$(gallery).show(0);
+		currentGallery = gallery;
+	}
+	
+// Javascript for delete icon
+	var deleteICON = document.createElement('img');
+	deleteICON.className="deleteICON";
+	$(deleteICON).attr("src","Images/Delete-Icon.png");
+	inside.appendChild(deleteICON);
+	$(deleteICON).hover(
+ 		function() {
+			$(deleteICON).attr("src","Images/Delete-Icon Hover.png");
+            $(inside).stop(true, true).addClass('red', 500);
+  		}, function() {
+        	$(deleteICON).attr("src","Images/Delete-Icon.png");
+            $(inside).stop(true, true).removeClass('red', 500);
+
+        }
+    );
+	deleteICON.onclick = function() {removeBOX(outside, inside, gallery);}
+
+// Javascript for edit icon
+	var editICON = document.createElement('img');
+	editICON.className="editICON";
+	$(editICON).attr("src","Images/Edit-Icon.png");
+	inside.appendChild(editICON);
+	$(editICON).hover(
+ 		function() {
+			$(editICON).attr("src","Images/Edit-Icon Hover.png");
+  		}, function() {
+        	 $(editICON).attr("src","Images/Edit-Icon.png");
+	});
+	editICON.onclick = function() {
+		pageNAME.disabled = false;
+		pageNAME.focus();
+		pageNAME.onblur=function(){
+			pageNAME.disabled = true;
+			};
+        $(pageNAME).keypress(function( event ) {
+                                if ( event.which == 13 )
+                                    pageNAME.blur();
+        })
+    }
+
+// javascript for new page button animation    
+ 	if (time == "load")
+		{
+		$(outside).show();
+		$(inside).show();		
+		}
+	else
+	{
+	$(outside).slideDown( "fast", function () {
+		$(inside).fadeIn( "fast");			
+	});	
+	}
+
+// javascript to show icons when button is hovered over
+	$(outside).hover(
+  		function() {
+			$(deleteICON).show();
+			$(editICON).show();
+		}, function() {
+            $(deleteICON).hide();
+			$(editICON).hide();
+	});
+	
+//Javascript to when user switches pages
+	var switchPAGE = (function(e){
+		if(e.target !=editICON && e.target != deleteICON && currentBUTTON != $(outside).index()){
+			$("#Wcontainer div.ButtonInside:eq(" + currentBUTTON + ")").switchClass( "Current", "Other", 400, "easeInOutQuad" );
+			$(inside).switchClass( "Other", "Current", 400, "easeInOutQuad" );
+			
+			var uploadLeft = (gallery.childNodes.length % 2) * 160 + "px";
+			var uploadTop = Math.floor(gallery.childNodes.length / 2) * 160 + "px";;
+			
+			if (gallery.childNodes.length >= currentGallery.childNodes.length)
+				{
+				$(currentGallery).fadeOut( 750);
+				$(upload_container).animate({ left: uploadLeft, top: uploadTop }, 750, function(){
+					$(gallery).fadeIn( 500 );
+					});	
+				}
+			else
+				{
+				$(currentGallery).fadeOut( 500, function(){
+					$(upload_container).animate({ left: uploadLeft, top: uploadTop }, 750);
+					$(gallery).fadeIn( 750 );
+					});
+				}
+				
+				
+			currentBUTTON = $(outside).index();
+			currentGallery = gallery;
+		}
+    });
+	$(inside).bind("click", switchPAGE); 
+	
+}
+
+// Javascript function that is performed when a page is deleted
+// outside and inside are parts of the template button, page specifies that droppable area
+function removeBOX (outside, inside, gallery) 
+{		
+	var deletedPAGE = $(outside).index();
+	if (currentBUTTON > deletedPAGE)
+		currentBUTTON--;
+  
+// Javascript to open new page if current viewing page is removed
+// *** needs fixing
+	if ($(inside).hasClass('Current')){
+		if(currentBUTTON==0)
+			{
+			$("#Wcontainer div.ButtonInside:eq(1)").switchClass( "Other", "Current", 400, "easeInOutQuad" );
+			currentGallery = $("#galleryParent .gallery:eq(0)");
+			currentGallery.fadeIn("fast");
+			}
+		else
+			{
+			$("#Wcontainer div.ButtonInside:eq(0)").switchClass( "Other", "Current", 400, "easeInOutQuad" );
+			currentGallery = $("#galleryParent .gallery:eq(-1)");
+			currentGallery.fadeIn("fast");
+			}
+
+		$(gallery).fadeOut( "fast", function (){
+			gallery.remove();
+			});
+			
+		currentBUTTON=0;
+	};
+
+// animation to remove page template		
+	$(inside).fadeOut( "fast", function () {
+		$(outside).slideUp( "fast", function () {
+			outside.remove();
+		});
+	});	
+
+	--pagecount;
+}
+	
+</script>
+
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    var localVideo;
+
+    initialize = function() {
+      localVideo = document.getElementById("localVideo");
+      try {
+        navigator.getUserMedia({video:true}, onGotStream, onFailedStream);
+    //trace("Requested access to local media");
+  } catch (e) {
+    alert("getUserMedia error " + e);
+    //trace_e(e, "getUserMedia error");
+  }
+}
+
+function rotateFunction(object, xVal, widthVal, videoWidth) {
+	var screen_offset = window.screenX;
+	var position_offset = object.getBoundingClientRect().left;
+	var width_offset = object.offsetWidth/2;
+	var total_offset = screen_offset+position_offset + width_offset;
+	var screen_width = window.screen.width;
+	var item_from_center = (total_offset - (screen_width/2)) / (screen_width/2);
+	
+	var face_point = xVal + widthVal/2;
+	var face_from_center = (face_point - (videoWidth/2)) / (videoWidth / 2); 
+	var angleX = item_from_center + face_from_center;
+	
+	//$("#spin").css({ transform: 'rotate3d(.5, ' + angleX + ', 0, 50deg'});		
+	$(object).css({ transform: 'rotateY(' + angleX * -20 + 'deg)'});
+}
+
+poll = function() {
+  var w = localVideo.videoWidth;
+  var h = localVideo.videoHeight;
+  var canvas = document.createElement('canvas');
+  canvas.width  = w;
+  canvas.height = h;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(localVideo, 0, 0, w, h);
+  var comp = ccv.detect_objects({ "canvas" : ccv.grayscale(canvas),
+                                "cascade" : cascade,
+                                "interval" : 5,
+                                "min_neighbors" : 1 });
+   
+// make require a certain confidence interval
+// if above confidence interval, take the highest value
+// make more efficient by taking out extraneous variables
+	if (comp.length > 0 && current_art != null) {
+		var spin = $(current_art).find(".frame");
+		rotateFunction($(spin).get()[0], comp[0].x, comp[0].width, w);
+	}
+
+  setTimeout(poll, 10);
+}
+
+
+onFailedStream = function(error) {
+  alert("Failed to get access to local media. Error code was " + error.code + ".");
+  //trace_warning("Failed to get access to local media. Error code was " + error.code);
+}
+
+
+setTimeout(initialize, 1);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+  <title>SmartArt</title>  
+</head>
+
+<body>
+<div class="logo">
+	<img style = "z-index:2; position:relative; width: auto; height: 80%; top:10%; left:15px; float:left;" src="Images/frame.png" />
+	
+    <div id = "recognition_button">    
+        <img style = "position:relative; width: auto; height: 30px; float:left; margin-right:10px;" src="Images/search.png" />
+        <div style = "position:relative; float:left; color:white; font-size:24px; top:8px;">Search</div>
+    </div>
+</div>
+
+<div style="width:336px; background-color: #2c3e50; position:relative; top:40px; overflow-y: scroll; height:calc(100% - 40px); min-height: 600px;">
+<!-- Template buttons -->
+	<div class="header" style="border-top:0px;">PROJECTS</div>
+	<div id="Wcontainer" style="margin-top:24px; position:relative; display:block; margin-bottom:10px; width:100%;"> 
+	</div>
+
+	<div id="pageADD"  class="pageADD">
+		<form><input id="pageTEXT" type="text" name="pagename" maxlength="20" class="textBOXbutton" placeholder="ADD PROJECT"></form>
+		<img onClick="newBOX('user')" id="Add-Icon" src="Images/Add-Icon.png" alt="Add Page" style="position:absolute; float:right; top:11px; right:13px;">
+		</div>
+<!-- Artworks boxes -->
+	<div class="header" style="z-index:1;">ARTWORKS</div>
+	
+    <div id="galleryParent" style="width:320px; position:relative; display:inline-block; background-color:red;">
+        
+        <div class="container" id="upload_container">
+                <div class="upload_button">
+                    <img class="upload_image" src="Images/upload.png" />
+                    <input class="upload_input" type="file" name="file_array[]" multiple id="file_select" onChange="handleFiles(this.files)">			
+               </div>     
+        </div> 
+        
+	</div>
+ 
+</div>
+
+
+<! Parent for droppable pages -->
+<div id = "artGuide" style="z-index:2; background-color:white; box-shadow: -2px 0px 7px 0px rgba(0, 0, 0, 0.5); width:calc(100% - 336px); min-width:600px; height:calc(100% - 40px); min-height: 600px; position:absolute; top:0px; margin-left:336px; top:40px;">
+
+
+<div id = "recognition_page" class="art_info" style="display:none;">
+  <video id="screenshot-stream" class="videostream" style="width:100%; height:auto;" autoplay></video>
+  <canvas id="screenshot-canvas" style="display:none;"></canvas>
+  <button id="screenshot-button" style="margin-left:auto; margin-right:auto; position:relative;">Take Shot</button>
+  
+  </br>
+  <img id="screenshot" style="width:auto; height: auto; position:relative; float:left; display:none;" src="">   
+  <img id="comparingArtwork" style="width: auto; height: auto; position:relative; float:left; display:none;" src="">
+  <canvas id="canvas" style="width:550px; height:275px; display:none; margin-left:auto; margin-right:auto;"></canvas>
+</div>
+
+
+
+<script>
+var localMediaStream = null;
+var video = document.querySelector('#screenshot-stream');
+var button = document.querySelector('#screenshot-button');
+var screenshotCanvas = document.querySelector('#screenshot-canvas');
+var screenshotImg = document.querySelector('#screenshot');
+var screenshotCtx = screenshotCanvas.getContext('2d');
+var comparingArtwork = document.querySelector('#comparingArtwork');
+
+var width = 152;
+var height = 114;
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+
+window.descriptorLength = 256;
+window.matchesShown = 100;
+window.blurRadius = 3;
+
+var maxMatches;
+var maxArtwork;
+
+function sizeCanvas() {
+  // video.onloadedmetadata not firing in Chrome so we have to hack.
+  // See crbug.com/110938.
+  setTimeout(function() {
+    screenshotCanvas.width = video.videoWidth;
+    screenshotCanvas.height = video.videoHeight;
+    screenshotImg.height = video.videoHeight;
+    screenshotImg.width = video.videoWidth;
+  }, 100);
+}
+
+function snapshot() {
+	var maxMatches = 0;
+	var maxArtwork = null;
+	
+	$(button).fadeOut('fast');
+  	$(video).fadeOut('fast', function(){
+		$(canvas).fadeIn('fast', function(){
+			screenshotCtx.drawImage(video, 0, 0);
+			$(screenshotImg).load(function() {	
+								
+				var possible_artworks = $(currentGallery).find(".image");
+				
+				
+				for (var j = 0; j < possible_artworks.length; j++)
+					{
+					comparingArtwork.src = possible_artworks.get()[j].src;
+					
+					tracking.Fast.THRESHOLD = 25;
+	
+					  tracking.Brief.N = window.descriptorLength;
+				
+					  context.drawImage(screenshotImg, 0, 0, width, height);
+					  context.drawImage(comparingArtwork, width, 0, width, height);
+				  
+					  var imageData1 = context.getImageData(0, 0, width, height);
+					  var imageData2 = context.getImageData(width, 0, width, height);
+				  
+					  var gray1 = tracking.Image.grayscale(tracking.Image.blur(imageData1.data, width, height, blurRadius), width, height);
+					  var gray2 = tracking.Image.grayscale(tracking.Image.blur(imageData2.data, width, height, blurRadius), width, height);
+				  
+					  var corners1 = tracking.Fast.findCorners(gray1, width, height);
+					  var corners2 = tracking.Fast.findCorners(gray2, width, height);
+				  
+					  var descriptors1 = tracking.Brief.getDescriptors(gray1, width, corners1);
+					  var descriptors2 = tracking.Brief.getDescriptors(gray2, width, corners2);
+				  
+					  var matches = tracking.Brief.reciprocalMatch(corners1, descriptors1, corners2, descriptors2);
+						
+					  var pairNum = matches.length;
+					  if (pairNum > maxMatches)
+							{
+							maxMatches = pairNum
+							maxArtwork = possible_artworks.get()[j];
+							}
+					}
+						
+					
+				
+					comparingArtwork.src = maxArtwork.src;
+					
+					tracking.Fast.THRESHOLD = 25;
+	
+					  tracking.Brief.N = window.descriptorLength;
+				
+					  context.drawImage(screenshotImg, 0, 0, width, height);
+					  context.drawImage(comparingArtwork, width, 0, width, height);
+				  
+					  var imageData1 = context.getImageData(0, 0, width, height);
+					  var imageData2 = context.getImageData(width, 0, width, height);
+				  
+					  var gray1 = tracking.Image.grayscale(tracking.Image.blur(imageData1.data, width, height, blurRadius), width, height);
+					  var gray2 = tracking.Image.grayscale(tracking.Image.blur(imageData2.data, width, height, blurRadius), width, height);
+				  
+					  var corners1 = tracking.Fast.findCorners(gray1, width, height);
+					  var corners2 = tracking.Fast.findCorners(gray2, width, height);
+				  
+					  var descriptors1 = tracking.Brief.getDescriptors(gray1, width, corners1);
+					  var descriptors2 = tracking.Brief.getDescriptors(gray2, width, corners2);
+				  
+					  var matches = tracking.Brief.reciprocalMatch(corners1, descriptors1, corners2, descriptors2);
+						
+					  var pairNum = matches.length;
+					  	
+																
+					matches.sort(function(a, b) 
+							{
+							return b.confidence - a.confidence;
+						  	});
+	
+					for (var i = 0; i < Math.min(window.matchesShown, matches.length); i++)
+							{
+							var color = '#' + Math.floor(Math.random()*16777215).toString(16);
+							context.fillStyle = color;
+							context.strokeStyle = color;
+							context.fillRect(matches[i].keypoint1[0], matches[i].keypoint1[1], 4, 4);
+							context.fillRect(matches[i].keypoint2[0] + width, matches[i].keypoint2[1], 4, 4);
+						
+							context.beginPath();
+							context.moveTo(matches[i].keypoint1[0], matches[i].keypoint1[1]);
+							context.lineTo(matches[i].keypoint2[0] + width, matches[i].keypoint2[1]);
+							context.stroke();
+							}
+								
+						
+					setTimeout(function(){
+						$(maxArtwork).click();
+						setTimeout(function(){
+							canvas.style.display='none';
+							button.style.display='block';	
+							video.style.display='block';
+						},1000)
+					},1000)
+				
+			}).attr("src", screenshotCanvas.toDataURL('image/webp'));							
+		});	
+  	});
+}
+
+onGotStream = function(stream) {
+  localMediaStream = stream;
+}
+
+function attachVideo() {
+	if (current_art != recognition_page){
+	  attachMediaStream(localVideo, localMediaStream);
+	
+	  //trace("User has granted access to local media. url = " + url);
+	  setTimeout(poll, 2000);
+	}
+	else{
+	  attachMediaStream(video, localMediaStream);  
+	  video.src = localMediaStream;
+	  sizeCanvas();
+	}
+}
+
+
+button.addEventListener('click', function(e) {
+  if (localMediaStream) {
+    snapshot();
+    return;
+  }
+
+}, false);
+
+</script>
+
+<style>
+.videostream, #cssfilters-stream {
+  background: rgba(255,255,255,0.5);
+  border: 1px solid #ccc;
+}
+
+</style>
+
+
+</div>
+
+<script>
+// function to change color of add icon depending
+$("#pageADD").hover(
+  function() {
+		 if (!($("#pageTEXT").is(":focus"))) {
+    		$("#Add-Icon").attr("src","Images/Add-Icon Hover.png");}
+         $("#pageTEXT").focus(
+  			function() {
+         		$("#Add-Icon").attr("src","Images/Add-Icon.png");
+				$("#Add-Icon").hover(
+ 					function() {
+         				$("#Add-Icon").attr("src","Images/Add-Icon Hover.png");
+					}, function() {
+         				$("#Add-Icon").attr("src","Images/Add-Icon.png");
+				});				 
+		 });
+  }, function() {
+         $("#Add-Icon").attr("src","Images/Add-Icon.png");
+});
+
+// allows new box to be created by pressing enter button
+$("#pageTEXT").keypress(function( event ) {
+    if ( event.which == 13 ){
+        event.preventDefault();
+            newBOX("user");
+            $("#pageTEXT").blur();
+    }
+})
+</script>
+
+
+
+<video id="localVideo" autoplay muted="" style="display:none;"></video>
+
+
+
+
+
+</body>
+</html>

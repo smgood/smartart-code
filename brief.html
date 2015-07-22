@@ -1,0 +1,212 @@
+<!doctype html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>tracking.js - feature matching</title>
+  <link rel="stylesheet" href="assets/demo.css">
+
+  <script src="js/tracking-min.js"></script>
+  <script src="js/numeric-1.2.6.js"></script>
+
+  <style>
+  .demo-container {
+    background-color: black;
+  }
+  #image1, #image2 {
+    position: absolute;
+    left: -1000px;
+    top: -1000px;
+  }
+  #canvas {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -393px;
+    margin-top: -147px;
+  }
+  </style>
+</head>
+<body>
+  <div class="demo-title">
+    <p><a href="http://trackingjs.com" target="_parent">tracking.js</a> － match similar feature points in two images</p>
+  </div>
+
+  <div class="demo-frame">
+    <div class="demo-container">
+      <img id="image1" src="assets/monalisa2.jpg" />
+      <img id="image2" src="assets/mona_lisa_sean.jpg" />
+      <canvas id="canvas" width="786" height="995"></canvas>
+    </div>
+  </div>
+
+
+
+
+  <script>
+  window.onload = function() {
+    var width = 330;
+    var height = 500;
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+
+    var image1 = document.getElementById('image1');
+    var image2 = document.getElementById('image2');
+
+    window.descriptorLength = 256;
+    window.matchesShown = 100;
+    window.blurRadius = 3;
+
+    var doMatch = function() {
+	
+	tracking.Fast.THRESHOLD = 15;
+
+      tracking.Brief.N = window.descriptorLength;
+
+      context.drawImage(image1, 0, 0, width, height);
+      context.drawImage(image2, width, 0, width, height);
+  
+      var imageData1 = context.getImageData(0, 0, width, height);
+      var imageData2 = context.getImageData(width, 0, width, height);
+  
+      var gray1 = tracking.Image.grayscale(tracking.Image.blur(imageData1.data, width, height, blurRadius), width, height);
+      var gray2 = tracking.Image.grayscale(tracking.Image.blur(imageData2.data, width, height, blurRadius), width, height);
+  
+      var corners1 = tracking.Fast.findCorners(gray1, width, height);
+      var corners2 = tracking.Fast.findCorners(gray2, width, height);
+  
+      var descriptors1 = tracking.Brief.getDescriptors(gray1, width, corners1);
+      var descriptors2 = tracking.Brief.getDescriptors(gray2, width, corners2);
+  
+      var matches = tracking.Brief.reciprocalMatch(corners1, descriptors1, corners2, descriptors2);
+		
+	
+		
+      matches.sort(function(a, b) {
+        return b.confidence - a.confidence;
+      });
+  
+      for (var i = 0; i < Math.min(window.matchesShown, matches.length); i++) {
+        var color = '#' + Math.floor(Math.random()*16777215).toString(16);
+        context.fillStyle = color;
+        context.strokeStyle = color;
+        context.fillRect(matches[i].keypoint1[0], matches[i].keypoint1[1], 4, 4);
+        context.fillRect(matches[i].keypoint2[0] + width, matches[i].keypoint2[1], 4, 4);
+
+        context.beginPath();
+        context.moveTo(matches[i].keypoint1[0], matches[i].keypoint1[1]);
+        context.lineTo(matches[i].keypoint2[0] + width, matches[i].keypoint2[1]);
+        context.stroke();
+      }
+	  
+	  var pairNum = matches.length;
+	  alert(pairNum);
+	  for (var i = 0; i < 20; i++)
+	  	{
+	  	var pair1 = Math.floor(Math.random() * pairNum);
+	  	var pair2 = Math.floor(Math.random() * pairNum);
+	  	var pair3 = Math.floor(Math.random() * pairNum);
+	  	var pair4 = Math.floor(Math.random() * pairNum);
+		}
+		
+		
+		var transform = [
+		[0, 0, 0, matches[pair1].keypoint1[0], matches[pair1].keypoint1[1], 1, -1 * matches[pair1].keypoint2[1] * matches[pair1].keypoint1[0], 
+		-1 * matches[pair1].keypoint2[1] * matches[pair1].keypoint1[1], -1 * matches[pair1].keypoint2[1]],
+		[matches[pair1].keypoint1[0], matches[pair1].keypoint1[1], 1, 0, 0, 0, -1*matches[pair1].keypoint2[0]*matches[pair1].keypoint1[0], 
+		-1*matches[pair1].keypoint2[0]*matches[pair1].keypoint1[1], -1 * matches[pair1].keypoint2[0]],
+		
+		[0, 0, 0, matches[pair2].keypoint1[0], matches[pair2].keypoint1[1], 1, -1 * matches[pair2].keypoint2[1] * matches[pair2].keypoint1[0], 
+		-1 * matches[pair2].keypoint2[1] * matches[pair2].keypoint1[1], -1 * matches[pair2].keypoint2[1]],
+		[matches[pair2].keypoint1[0], matches[pair2].keypoint1[1], 1, 0, 0, 0, -1*matches[pair2].keypoint2[0]*matches[pair2].keypoint1[0], 
+		-1*matches[pair2].keypoint2[0]*matches[pair2].keypoint1[1], -1 * matches[pair2].keypoint2[0]], 
+		
+		[0, 0, 0, matches[pair3].keypoint1[0], matches[pair3].keypoint1[1], 1, -1 * matches[pair3].keypoint2[1] * matches[pair3].keypoint1[0], 
+		-1 * matches[pair3].keypoint2[1] * matches[pair3].keypoint1[1], -1 * matches[pair3].keypoint2[1]],
+		[matches[pair3].keypoint1[0], matches[pair3].keypoint1[1], 1, 0, 0, 0, -1*matches[pair3].keypoint2[0]*matches[pair3].keypoint1[0], 
+		-1*matches[pair3].keypoint2[0]*matches[pair3].keypoint1[1], -1 * matches[pair3].keypoint2[0]], 
+		
+		[0, 0, 0, matches[pair4].keypoint1[0], matches[pair4].keypoint1[1], 1, -1 * matches[pair4].keypoint2[1] * matches[pair4].keypoint1[0], 
+		-1 * matches[pair4].keypoint2[1] * matches[pair4].keypoint1[1], -1 * matches[pair4].keypoint2[1]],
+		[matches[pair4].keypoint1[0], matches[pair4].keypoint1[1], 1, 0, 0, 0, -1*matches[pair4].keypoint2[0]*matches[pair4].keypoint1[0], 
+		-1*matches[pair4].keypoint2[0]*matches[pair4].keypoint1[1], -1 * matches[pair4].keypoint2[0]]
+		];	
+		
+		/*
+		transform=[
+	   [1, 2, 3, 4, 5, 6, 7, 8, 9],
+	   [10, 11, 12, 13, 14, 15, 16, 17, 18],
+	   [19, 20, 21, 22, 23, 24, 25, 26, 27],
+	   [28, 29, 30, 31, 32, 33, 34, 35, 36],
+	   [37, 38, 39, 40, 41, 42, 43, 44, 45],
+	   [46, 47, 48, 49, 50, 51, 52, 53, 54],
+	   [55, 56, 57, 58, 59, 60, 61, 62, 63],
+	   [64, 65, 66, 67, 68, 69, 70, 71, 72],
+	   ];	
+	   */ 
+	   
+	   	transform=[
+	   [1, 2, 3],
+	   [10, 11, 12],
+	   [19, 20, 21],
+	   [28, 29, 30],
+	   [37, 38, 39],
+	   [46, 47, 48],
+	   [55, 56, 57],
+	   [64, 65, 66],
+	   ];
+	   
+	  // transform = numeric.transpose(transform);	
+		alert(transform);
+
+		//var SingularValueDecomposition = numeric.svd(transform);
+		
+		var SingularValueDecomposition = svdcmp(100, 100, 100, 100, 100);
+
+		
+		var V = SingularValueDecomposition.V;
+		
+for (var i = 0; i < V.length; i++){
+		alert (V[i]);
+}
+		
+
+		//var H = reshape(svd.V(:,end)/svd.V(end,end),3,3); 
+
+	  	  
+		/*
+		you know the dimensions of each image
+		you also have the coordinates of the matches
+		sample 4 matches and get convoulition
+		get inliers and outliers
+		iteration 20 times or so
+		return most inliers as the max for that image
+		
+		Plan of action:
+			Be able to dynamically change width and height for each image
+			perform ransac on 2 images
+			return inlier count
+			be able to take photo and use it as one image
+			Be able to Loop through each image in gallery
+			Return image with most inliers
+		*/
+
+    };
+
+    doMatch();
+/*
+    var gui = new dat.GUI();
+    gui.add(window, 'descriptorLength', 128, 512).step(32).onChange(doMatch);
+    gui.add(window, 'matchesShown', 1, 100).onChange(doMatch);
+    gui.add(window, 'blurRadius', 1.1, 5).onChange(doMatch);
+*/
+  }
+  </script>
+  
+  
+
+
+
+
+</body>
+</html>
